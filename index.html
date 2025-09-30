@@ -1,0 +1,68 @@
+function loadQuestion(){
+  selectedIndex = null;
+  nextBtn.disabled = true;
+  msgEl.textContent = '';
+  const item = questions[idx];
+  progEl.textContent = Question ${idx+1} / ${questions.length};
+  qEl.textContent = item.q;
+  optsEl.innerHTML = '';
+  item.opts.forEach((opt, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'option';
+    btn.textContent = (['A','B','C','D'][i]||'') + ' — ' + opt;
+    btn.dataset.i = i;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.option').forEach(n=>n.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedIndex = i;
+      nextBtn.disabled = false;
+    });
+    optsEl.appendChild(btn);
+  });
+}
+
+nextBtn.addEventListener('click', () => {
+  if (selectedIndex === null) return;
+  const correct = questions[idx].a;
+  const options = Array.from(document.querySelectorAll('.option'));
+  // mark correct/wrong
+  options.forEach(o => {
+    const i = +o.dataset.i;
+    if (i === correct) o.classList.add('correct');
+    if (i === selectedIndex && i !== correct) o.classList.add('wrong');
+    o.style.pointerEvents = 'none';
+  });
+  if (selectedIndex === correct) { score++; msgEl.textContent = 'Correct!'; }
+  else { msgEl.textContent = 'Incorrect.'; }
+  nextBtn.disabled = false;
+  nextBtn.textContent = (idx === questions.length-1) ? 'See Results' : 'Next';
+  // move to next on click again
+  nextBtn.onclick = () => {
+    idx++;
+    if (idx < questions.length) {
+      nextBtn.textContent = 'Next';
+      loadQuestion();
+      nextBtn.onclick = null;
+    } else {
+      showResults();
+    }
+  };
+});
+
+function showResults(){
+  const app = document.getElementById('app');
+  app.innerHTML = 
+    <div style="text-align:center;padding:20px">
+      <h2>Your Score</h2>
+      <div class="score">${score} / ${questions.length}</div>
+      <p>${Math.round((score/questions.length)*100)}% correct</p>
+      <button id="retry">Retry Quiz</button>
+    </div>
+  ;
+  document.getElementById('retry').addEventListener('click', ()=>{ idx=0; score=0; location.reload(); });
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
